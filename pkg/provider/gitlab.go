@@ -19,7 +19,7 @@ type GitLabRepository struct {
 }
 
 func (repo *GitLabRepository) Init(config map[string]string) error {
-	gitlabBaseUrl := config["gitlabBaseUrl"]
+	gitlabBaseUrl := config["gitlab_baseurl"]
 	if gitlabBaseUrl == "" {
 		gitlabBaseUrl = os.Getenv("CI_SERVER_URL")
 	}
@@ -32,17 +32,17 @@ func (repo *GitLabRepository) Init(config map[string]string) error {
 		return errors.New("gitlab token missing")
 	}
 
-	branch := config["gitlabBranch"]
+	branch := config["gitlab_branch"]
 	if branch == "" {
 		branch = os.Getenv("CI_COMMIT_BRANCH")
 	}
 
-	projectID := config["gitlabProjectID"]
+	projectID := config["gitlab_projectid"]
 	if projectID == "" {
 		projectID = os.Getenv("CI_PROJECT_ID")
 	}
 	if projectID == "" {
-		return fmt.Errorf("gitlabProjectID is required")
+		return fmt.Errorf("gitlab_projectid is required")
 	}
 
 	repo.projectID = projectID

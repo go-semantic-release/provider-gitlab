@@ -24,16 +24,16 @@ func TestNewGitlabRepository(t *testing.T) {
 
 	repo = &GitLabRepository{}
 	err = repo.Init(map[string]string{
-		"token":           "token",
-		"gitlabProjectID": "1",
+		"token":            "token",
+		"gitlab_projectid": "1",
 	})
 	require.NoError(err)
 
 	repo = &GitLabRepository{}
 	err = repo.Init(map[string]string{
-		"gitlabBaseUrl":   "https://mygitlab.com",
-		"token":           "token",
-		"gitlabProjectID": "1",
+		"gitlab_baseurl":   "https://mygitlab.com",
+		"token":            "token",
+		"gitlab_projectid": "1",
 	})
 	require.NoError(err)
 	require.Equal("https://mygitlab.com/api/v4/", repo.client.BaseURL().String(), "invalid custom instance initialization")
@@ -117,10 +117,10 @@ func getNewGitlabTestRepo(t *testing.T) (*GitLabRepository, *httptest.Server) {
 	ts := httptest.NewServer(http.HandlerFunc(GitlabHandler))
 	repo := &GitLabRepository{}
 	err := repo.Init(map[string]string{
-		"gitlabBaseUrl":   ts.URL,
-		"token":           "gitlab-examples-ci",
-		"gitlabBranch":    "",
-		"gitlabProjectID": strconv.Itoa(GITLAB_PROJECT_ID),
+		"gitlab_baseurl":   ts.URL,
+		"token":            "gitlab-examples-ci",
+		"gitlab_branch":    "",
+		"gitlab_projectid": strconv.Itoa(GITLAB_PROJECT_ID),
 	})
 	require.NoError(t, err)
 
