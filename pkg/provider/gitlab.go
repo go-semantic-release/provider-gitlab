@@ -1,7 +1,9 @@
 package provider
 
 import (
+	"errors"
 	"fmt"
+	"os"
 	"regexp"
 
 	"github.com/Masterminds/semver/v3"
@@ -18,11 +20,29 @@ type GitLabRepository struct {
 
 func (repo *GitLabRepository) Init(config map[string]string) error {
 	gitlabBaseUrl := config["gitlabBaseUrl"]
+	if gitlabBaseUrl == "" {
+		gitlabBaseUrl = os.Getenv("CI_SERVER_URL")
+	}
+
 	token := config["token"]
+	if token == "" {
+		token = os.Getenv("GITLAB_TOKEN")
+	}
+	if token == "" {
+		return errors.New("gitlab token missing")
+	}
+
 	branch := config["gitlabBranch"]
+	if branch == "" {
+		branch = os.Getenv("CI_COMMIT_BRANCH")
+	}
+
 	projectID := config["gitlabProjectID"]
 	if projectID == "" {
-		return fmt.Errorf("project id is required")
+		projectID = os.Getenv("CI_PROJECT_ID")
+	}
+	if projectID == "" {
+		return fmt.Errorf("gitlabProjectID is required")
 	}
 
 	repo.projectID = projectID

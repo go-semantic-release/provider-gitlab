@@ -20,7 +20,7 @@ func TestNewGitlabRepository(t *testing.T) {
 	var repo *GitLabRepository
 	repo = &GitLabRepository{}
 	err := repo.Init(map[string]string{})
-	require.EqualError(err, "project id is required")
+	require.EqualError(err, "gitlab token missing")
 
 	repo = &GitLabRepository{}
 	err = repo.Init(map[string]string{
