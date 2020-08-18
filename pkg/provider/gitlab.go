@@ -12,6 +12,8 @@ import (
 	"github.com/xanzy/go-gitlab"
 )
 
+var PVERSION = "dev"
+
 type GitLabRepository struct {
 	projectID string
 	branch    string
@@ -176,4 +178,8 @@ func (repo *GitLabRepository) CreateRelease(release *provider.CreateReleaseConfi
 
 func (repo *GitLabRepository) Name() string {
 	return "GitLab"
+}
+
+func (repo *GitLabRepository) Version() string {
+	return PVERSION
 }
