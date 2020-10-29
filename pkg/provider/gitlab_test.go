@@ -139,7 +139,7 @@ func TestGitlabGetInfo(t *testing.T) {
 func TestGitlabGetCommits(t *testing.T) {
 	repo, ts := getNewGitlabTestRepo(t)
 	defer ts.Close()
-	commits, err := repo.GetCommits("")
+	commits, err := repo.GetCommits("", "")
 	require.NoError(t, err)
 	require.Len(t, commits, 4)
 

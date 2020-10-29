@@ -83,14 +83,14 @@ func (repo *GitLabRepository) GetInfo() (*provider.RepositoryInfo, error) {
 	}, nil
 }
 
-func (repo *GitLabRepository) GetCommits(sha string) ([]*semrel.RawCommit, error) {
+func (repo *GitLabRepository) GetCommits(fromSha, toSha string) ([]*semrel.RawCommit, error) {
 	opts := &gitlab.ListCommitsOptions{
 		ListOptions: gitlab.ListOptions{
 			Page:    1,
 			PerPage: 100,
 		},
-		RefName: gitlab.String(fmt.Sprintf("%s...%s", repo.branch, sha)),
-		All:     gitlab.Bool(true),
+		// No Matter the order ofr fromSha and toSha gitlab always returns commits in reverse chronological order
+		RefName: gitlab.String(fmt.Sprintf("%s...%s", fromSha, toSha)),
 	}
 
 	allCommits := make([]*semrel.RawCommit, 0)
@@ -109,7 +109,10 @@ func (repo *GitLabRepository) GetCommits(sha string) ([]*semrel.RawCommit, error
 			})
 		}
 
-		if resp.CurrentPage >= resp.TotalPages {
+		// We cannot always rely on the total pages header
+		// https://gitlab.com/gitlab-org/gitlab-foss/-/merge_requests/23931
+		// if resp.CurrentPage >= resp.TotalPages {
+		if resp.NextPage == 0 {
 			break
 		}
 
