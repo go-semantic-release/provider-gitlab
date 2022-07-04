@@ -13,7 +13,7 @@ import (
 	"github.com/xanzy/go-gitlab"
 )
 
-const TAG_VERSION = "{version}"
+const TAG_PLACEHOLDER = "{version}"
 
 var PVERSION = "dev"
 
@@ -53,7 +53,7 @@ func (repo *GitLabRepository) Init(config map[string]string) error {
 
 	tagFormat := config["tag_format"]
 	if tagFormat == "" {
-		tagFormat = "v" + TAG_VERSION
+		tagFormat = "v" + TAG_PLACEHOLDER
 	}
 
 	repo.projectID = projectID
@@ -176,7 +176,7 @@ func (repo *GitLabRepository) GetReleases(rawRe string) ([]*semrel.Release, erro
 }
 
 func (repo *GitLabRepository) CreateRelease(release *provider.CreateReleaseConfig) error {
-	tag := strings.ReplaceAll(repo.tagFormat, TAG_VERSION, release.NewVersion)
+	tag := strings.ReplaceAll(repo.tagFormat, TAG_PLACEHOLDER, release.NewVersion)
 
 	// Gitlab does not have any notion of pre-releases
 	_, _, err := repo.client.Releases.CreateRelease(repo.projectID, &gitlab.CreateReleaseOptions{
