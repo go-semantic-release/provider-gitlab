@@ -14,6 +14,11 @@ import (
 	"github.com/xanzy/go-gitlab"
 )
 
+var validTags = map[string]bool{
+	"v2.0.0": true,
+	"2.0.0":  true,
+}
+
 func TestNewGitlabRepository(t *testing.T) {
 	require := require.New(t)
 
@@ -34,6 +39,7 @@ func TestNewGitlabRepository(t *testing.T) {
 		"gitlab_baseurl":   "https://mygitlab.com",
 		"token":            "token",
 		"gitlab_projectid": "1",
+		"tag_format":       "{version}",
 	})
 	require.NoError(err)
 	require.Equal("https://mygitlab.com/api/v4/", repo.client.BaseURL().String(), "invalid custom instance initialization")
@@ -102,10 +108,12 @@ func GitlabHandler(w http.ResponseWriter, r *http.Request) {
 		var data map[string]string
 		json.NewDecoder(r.Body).Decode(&data)
 		r.Body.Close()
-		if data["tag_name"] != "v2.0.0" {
+
+		if _, ok := validTags[data["tag_name"]]; !ok {
 			http.Error(w, "invalid tag name", http.StatusBadRequest)
 			return
 		}
+
 		fmt.Fprint(w, "{}")
 		return
 	}
@@ -182,5 +190,24 @@ func TestGitlabCreateRelease(t *testing.T) {
 	repo, ts := getNewGitlabTestRepo(t)
 	defer ts.Close()
 	err := repo.CreateRelease(&provider.CreateReleaseConfig{NewVersion: "2.0.0", SHA: "deadbeef"})
+	require.NoError(t, err)
+}
+
+func TestGitlabTagFormatRelease(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(GitlabHandler))
+	defer ts.Close()
+
+	repo := &GitLabRepository{}
+	err := repo.Init(map[string]string{
+		"gitlab_baseurl":   ts.URL,
+		"token":            "gitlab-examples-ci",
+		"gitlab_branch":    "",
+		"gitlab_projectid": strconv.Itoa(GITLAB_PROJECT_ID),
+		"tag_format":       "{version}",
+	})
+
+	require.NoError(t, err)
+
+	err = repo.CreateRelease(&provider.CreateReleaseConfig{NewVersion: "2.0.0", SHA: "deadbeef"})
 	require.NoError(t, err)
 }

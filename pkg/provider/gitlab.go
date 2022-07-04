@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"strings"
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/go-semantic-release/semantic-release/v2/pkg/provider"
@@ -12,11 +13,14 @@ import (
 	"github.com/xanzy/go-gitlab"
 )
 
+const TAG_VERSION = "{version}"
+
 var PVERSION = "dev"
 
 type GitLabRepository struct {
 	projectID string
 	branch    string
+	tagFormat string
 	client    *gitlab.Client
 }
 
@@ -47,8 +51,14 @@ func (repo *GitLabRepository) Init(config map[string]string) error {
 		return fmt.Errorf("gitlab_projectid is required")
 	}
 
+	tagFormat := config["tag_format"]
+	if tagFormat == "" {
+		tagFormat = "v" + TAG_VERSION
+	}
+
 	repo.projectID = projectID
 	repo.branch = branch
+	repo.tagFormat = tagFormat
 
 	var (
 		client *gitlab.Client
@@ -166,7 +176,7 @@ func (repo *GitLabRepository) GetReleases(rawRe string) ([]*semrel.Release, erro
 }
 
 func (repo *GitLabRepository) CreateRelease(release *provider.CreateReleaseConfig) error {
-	tag := fmt.Sprintf("v%s", release.NewVersion)
+	tag := strings.ReplaceAll(repo.tagFormat, TAG_VERSION, release.NewVersion)
 
 	// Gitlab does not have any notion of pre-releases
 	_, _, err := repo.client.Releases.CreateRelease(repo.projectID, &gitlab.CreateReleaseOptions{
