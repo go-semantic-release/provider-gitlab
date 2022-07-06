@@ -171,9 +171,9 @@ func (repo *GitLabRepository) GetReleases(rawRe string) ([]*semrel.Release, erro
 }
 
 func (repo *GitLabRepository) CreateRelease(release *provider.CreateReleaseConfig) error {
-	var prefix string
+	prefix := "v"
 	if repo.stripVTagPrefix {
-		prefix = "v"
+		prefix = ""
 	}
 
 	tag := prefix + release.NewVersion
