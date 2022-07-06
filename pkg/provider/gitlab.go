@@ -52,7 +52,8 @@ func (repo *GitLabRepository) Init(config map[string]string) error {
 	var err error
 	stripVTagPrefix := config["strip_v_tag_prefix"]
 	repo.stripVTagPrefix, err = strconv.ParseBool(stripVTagPrefix)
-	if err != nil {
+
+	if stripVTagPrefix != "" && err != nil {
 		return fmt.Errorf("failed to set property strip_v_tag_prefix: %w", err)
 	}
 
