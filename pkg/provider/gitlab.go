@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 	"regexp"
-	"strings"
+	"strconv"
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/go-semantic-release/semantic-release/v2/pkg/provider"
@@ -13,15 +13,13 @@ import (
 	"github.com/xanzy/go-gitlab"
 )
 
-const TAG_PLACEHOLDER = "{version}"
-
 var PVERSION = "dev"
 
 type GitLabRepository struct {
-	projectID string
-	branch    string
-	tagFormat string
-	client    *gitlab.Client
+	projectID       string
+	branch          string
+	stripVTagPrefix bool
+	client          *gitlab.Client
 }
 
 func (repo *GitLabRepository) Init(config map[string]string) error {
@@ -51,20 +49,17 @@ func (repo *GitLabRepository) Init(config map[string]string) error {
 		return fmt.Errorf("gitlab_projectid is required")
 	}
 
-	tagFormat := config["tag_format"]
-	if tagFormat == "" {
-		tagFormat = "v" + TAG_PLACEHOLDER
+	var err error
+	stripVTagPrefix := config["strip_v_tag_prefix"]
+	repo.stripVTagPrefix, err = strconv.ParseBool(stripVTagPrefix)
+	if err != nil {
+		return fmt.Errorf("failed to set property strip_v_tag_prefix: %w", err)
 	}
 
 	repo.projectID = projectID
 	repo.branch = branch
-	repo.tagFormat = tagFormat
 
-	var (
-		client *gitlab.Client
-		err    error
-	)
-
+	var client *gitlab.Client
 	if gitlabBaseUrl != "" {
 		client, err = gitlab.NewClient(token, gitlab.WithBaseURL(gitlabBaseUrl))
 	} else {
@@ -176,7 +171,12 @@ func (repo *GitLabRepository) GetReleases(rawRe string) ([]*semrel.Release, erro
 }
 
 func (repo *GitLabRepository) CreateRelease(release *provider.CreateReleaseConfig) error {
-	tag := strings.ReplaceAll(repo.tagFormat, TAG_PLACEHOLDER, release.NewVersion)
+	var prefix string
+	if repo.stripVTagPrefix {
+		prefix = "v"
+	}
+
+	tag := prefix + release.NewVersion
 
 	// Gitlab does not have any notion of pre-releases
 	_, _, err := repo.client.Releases.CreateRelease(repo.projectID, &gitlab.CreateReleaseOptions{

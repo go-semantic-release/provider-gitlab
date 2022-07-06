@@ -36,10 +36,10 @@ func TestNewGitlabRepository(t *testing.T) {
 
 	repo = &GitLabRepository{}
 	err = repo.Init(map[string]string{
-		"gitlab_baseurl":   "https://mygitlab.com",
-		"token":            "token",
-		"gitlab_projectid": "1",
-		"tag_format":       "{version}",
+		"gitlab_baseurl":     "https://mygitlab.com",
+		"token":              "token",
+		"gitlab_projectid":   "1",
+		"strip_v_tag_prefix": "true",
 	})
 	require.NoError(err)
 	require.Equal("https://mygitlab.com/api/v4/", repo.client.BaseURL().String(), "invalid custom instance initialization")
@@ -193,17 +193,17 @@ func TestGitlabCreateRelease(t *testing.T) {
 	require.NoError(t, err)
 }
 
-func TestGitlabTagFormatRelease(t *testing.T) {
+func TestGitlabStripVTagRelease(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(GitlabHandler))
 	defer ts.Close()
 
 	repo := &GitLabRepository{}
 	err := repo.Init(map[string]string{
-		"gitlab_baseurl":   ts.URL,
-		"token":            "gitlab-examples-ci",
-		"gitlab_branch":    "",
-		"gitlab_projectid": strconv.Itoa(GITLAB_PROJECT_ID),
-		"tag_format":       "{version}",
+		"gitlab_baseurl":     ts.URL,
+		"token":              "gitlab-examples-ci",
+		"gitlab_branch":      "",
+		"gitlab_projectid":   strconv.Itoa(GITLAB_PROJECT_ID),
+		"strip_v_tag_prefix": "true",
 	})
 
 	require.NoError(t, err)
