@@ -23,9 +23,9 @@ type GitLabRepository struct {
 }
 
 func (repo *GitLabRepository) Init(config map[string]string) error {
-	gitlabBaseUrl := config["gitlab_baseurl"]
-	if gitlabBaseUrl == "" {
-		gitlabBaseUrl = os.Getenv("CI_SERVER_URL")
+	gitlabBaseURL := config["gitlab_baseurl"]
+	if gitlabBaseURL == "" {
+		gitlabBaseURL = os.Getenv("CI_SERVER_URL")
 	}
 
 	token := config["token"]
@@ -61,8 +61,8 @@ func (repo *GitLabRepository) Init(config map[string]string) error {
 	repo.branch = branch
 
 	var client *gitlab.Client
-	if gitlabBaseUrl != "" {
-		client, err = gitlab.NewClient(token, gitlab.WithBaseURL(gitlabBaseUrl))
+	if gitlabBaseURL != "" {
+		client, err = gitlab.NewClient(token, gitlab.WithBaseURL(gitlabBaseURL))
 	} else {
 		client, err = gitlab.NewClient(token)
 	}
@@ -77,7 +77,6 @@ func (repo *GitLabRepository) Init(config map[string]string) error {
 
 func (repo *GitLabRepository) GetInfo() (*provider.RepositoryInfo, error) {
 	project, _, err := repo.client.Projects.GetProject(repo.projectID, nil)
-
 	if err != nil {
 		return nil, err
 	}
@@ -103,7 +102,6 @@ func (repo *GitLabRepository) GetCommits(fromSha, toSha string) ([]*semrel.RawCo
 
 	for {
 		commits, resp, err := repo.client.Commits.ListCommits(repo.projectID, opts)
-
 		if err != nil {
 			return nil, err
 		}
