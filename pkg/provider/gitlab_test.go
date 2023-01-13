@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"strconv"
 	"testing"
+	"time"
 
 	"github.com/go-semantic-release/semantic-release/v2/pkg/provider"
 	"github.com/go-semantic-release/semantic-release/v2/pkg/semrel"
@@ -46,7 +47,17 @@ func TestNewGitlabRepository(t *testing.T) {
 }
 
 func createGitlabCommit(sha, message string) *gitlab.Commit {
-	return &gitlab.Commit{ID: sha, Message: message}
+	commitDate := time.Now()
+	return &gitlab.Commit{
+		ID:             sha,
+		Message:        message,
+		AuthorName:     "author",
+		AuthorEmail:    "author@gitlab.com",
+		AuthoredDate:   &commitDate,
+		CommitterName:  "committer",
+		CommitterEmail: "committer@gitlab.com",
+		CommittedDate:  &commitDate,
+	}
 }
 
 var testSHA = "deadbeef"
@@ -157,6 +168,12 @@ func TestGitlabGetCommits(t *testing.T) {
 	for i, c := range commits {
 		require.Equal(t, c.SHA, gitlabCommits[i].ID)
 		require.Equal(t, c.RawMessage, gitlabCommits[i].Message)
+		require.Equal(t, c.Annotations["author_name"], gitlabCommits[i].AuthorName)
+		require.Equal(t, c.Annotations["author_email"], gitlabCommits[i].AuthorEmail)
+		require.Equal(t, c.Annotations["committer_name"], gitlabCommits[i].CommitterName)
+		require.Equal(t, c.Annotations["committer_email"], gitlabCommits[i].CommitterEmail)
+		require.Equal(t, c.Annotations["author_date"], gitlabCommits[i].AuthoredDate.Format(time.RFC3339))
+		require.Equal(t, c.Annotations["committer_date"], gitlabCommits[i].CommittedDate.Format(time.RFC3339))
 	}
 }
 
