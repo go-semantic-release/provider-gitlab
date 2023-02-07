@@ -6,6 +6,7 @@ import (
 	"os"
 	"regexp"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/Masterminds/semver/v3"
@@ -81,22 +82,30 @@ func (repo *GitLabRepository) GetInfo() (*provider.RepositoryInfo, error) {
 	if err != nil {
 		return nil, err
 	}
+	namespace, repoName, _ := strings.Cut(project.PathWithNamespace, "/")
 	return &provider.RepositoryInfo{
-		Owner:         "",
-		Repo:          "",
+		Owner:         namespace,
+		Repo:          repoName,
 		DefaultBranch: project.DefaultBranch,
 		Private:       project.Visibility == gitlab.PrivateVisibility,
 	}, nil
 }
 
 func (repo *GitLabRepository) GetCommits(fromSha, toSha string) ([]*semrel.RawCommit, error) {
+	var refName *string
+	if fromSha == "" {
+		refName = gitlab.String(toSha)
+	} else {
+		// No Matter the order ofr fromSha and toSha gitlab always returns commits in reverse chronological order
+		refName = gitlab.String(fmt.Sprintf("%s...%s", fromSha, toSha))
+	}
+
 	opts := &gitlab.ListCommitsOptions{
 		ListOptions: gitlab.ListOptions{
 			Page:    1,
 			PerPage: 100,
 		},
-		// No Matter the order ofr fromSha and toSha gitlab always returns commits in reverse chronological order
-		RefName: gitlab.String(fmt.Sprintf("%s...%s", fromSha, toSha)),
+		RefName: refName,
 	}
 
 	allCommits := make([]*semrel.RawCommit, 0)

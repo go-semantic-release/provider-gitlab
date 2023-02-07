@@ -71,7 +71,7 @@ func createGitlabTag(name string) *gitlab.Tag {
 var (
 	gitlabProjectID     = 12324322
 	gitlabDefaultBranch = "master"
-	gitlabProjects      = gitlab.Project{DefaultBranch: gitlabDefaultBranch, Visibility: gitlab.PrivateVisibility, ID: gitlabProjectID}
+	gitlabProjects      = gitlab.Project{DefaultBranch: gitlabDefaultBranch, Visibility: gitlab.PrivateVisibility, ID: gitlabProjectID, PathWithNamespace: "owner/repo"}
 	gitlabCommits       = []*gitlab.Commit{
 		createGitlabCommit("abcd", "feat(app): new feature"),
 		createGitlabCommit("dcba", "Fix: bug"),
@@ -156,6 +156,8 @@ func TestGitlabGetInfo(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, gitlabDefaultBranch, repoInfo.DefaultBranch)
 	require.True(t, repoInfo.Private)
+	require.Equal(t, "owner", repoInfo.Owner)
+	require.Equal(t, "repo", repoInfo.Repo)
 }
 
 func TestGitlabGetCommits(t *testing.T) {
