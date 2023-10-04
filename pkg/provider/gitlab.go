@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/Masterminds/semver/v3"
+	git_provider "github.com/go-semantic-release/provider-git/pkg/provider"
 	"github.com/go-semantic-release/semantic-release/v2/pkg/provider"
 	"github.com/go-semantic-release/semantic-release/v2/pkg/semrel"
 	"github.com/xanzy/go-gitlab"
@@ -21,6 +22,7 @@ type GitLabRepository struct {
 	branch          string
 	stripVTagPrefix bool
 	client          *gitlab.Client
+	gitRepo         *git_provider.Repository
 }
 
 func (repo *GitLabRepository) Init(config map[string]string) error {
@@ -32,6 +34,20 @@ func (repo *GitLabRepository) Init(config map[string]string) error {
 	token := config["token"]
 	if token == "" {
 		token = os.Getenv("GITLAB_TOKEN")
+		repo.gitRepo = nil
+	}
+	if token == "" {
+		token = os.Getenv("CI_JOB_TOKEN")
+
+		repo.gitRepo = &git_provider.Repository{}
+		config := map[string]string{
+			"default_branch": os.Getenv("CI_DEFAULT_BRANCH"),
+			"tagger_name":    os.Getenv("GITLAB_USER_NAME"),
+			"tagger_email":   os.Getenv("GITLAB_USER_EMAIL"),
+			"remote_name":    "origin",
+			"git_path":       os.Getenv("CI_PROJECT_DIR"),
+		}
+		repo.gitRepo.Init(config)
 	}
 	if token == "" {
 		return errors.New("gitlab token missing")
@@ -86,6 +102,10 @@ func (repo *GitLabRepository) GetInfo() (*provider.RepositoryInfo, error) {
 }
 
 func (repo *GitLabRepository) GetCommits(fromSha, toSha string) ([]*semrel.RawCommit, error) {
+	if repo.gitRepo != nil {
+		return repo.gitRepo.GetCommits(fromSha, toSha)
+	}
+
 	var refName *string
 	if fromSha == "" {
 		refName = gitlab.String(toSha)
