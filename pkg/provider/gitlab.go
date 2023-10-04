@@ -159,6 +159,10 @@ func (repo *GitLabRepository) GetCommits(fromSha, toSha string) ([]*semrel.RawCo
 }
 
 func (repo *GitLabRepository) GetReleases(rawRe string) ([]*semrel.Release, error) {
+	if repo.gitRepo != nil {
+		return repo.gitRepo.GetReleases(rawRe)
+	}
+
 	re := regexp.MustCompile(rawRe)
 	allReleases := make([]*semrel.Release, 0)
 
