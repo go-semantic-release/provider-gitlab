@@ -30,9 +30,14 @@ func (repo *GitLabRepository) Init(config map[string]string) error {
 		gitlabBaseURL = os.Getenv("CI_SERVER_URL")
 	}
 
+	useJobToken := false
 	token := config["token"]
 	if token == "" {
 		token = os.Getenv("GITLAB_TOKEN")
+	}
+	if token == "" {
+		token = os.Getenv("CI_JOB_TOKEN")
+		useJobToken = true
 	}
 	if token == "" {
 		return errors.New("gitlab token missing")
@@ -62,11 +67,16 @@ func (repo *GitLabRepository) Init(config map[string]string) error {
 	repo.projectID = projectID
 	repo.branch = branch
 
-	var client *gitlab.Client
+	gitlabClientOpts := []gitlab.ClientOptionFunc{}
 	if gitlabBaseURL != "" {
-		client, err = gitlab.NewClient(token, gitlab.WithBaseURL(gitlabBaseURL))
+		gitlabClientOpts = append(gitlabClientOpts, gitlab.WithBaseURL(gitlabBaseURL))
+	}
+
+	var client *gitlab.Client
+	if useJobToken {
+		client, err = gitlab.NewJobClient(token, gitlabClientOpts...)
 	} else {
-		client, err = gitlab.NewClient(token)
+		client, err = gitlab.NewClient(token, gitlabClientOpts...)
 	}
 
 	if err != nil {
