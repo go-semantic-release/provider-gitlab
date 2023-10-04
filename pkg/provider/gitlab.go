@@ -88,6 +88,15 @@ func (repo *GitLabRepository) Init(config map[string]string) error {
 }
 
 func (repo *GitLabRepository) GetInfo() (*provider.RepositoryInfo, error) {
+	if repo.projectID == os.Getenv("CI_PROJECT_ID") {
+		return &provider.RepositoryInfo{
+			Owner:         os.Getenv("CI_PROJECT_NAMESPACE"),
+			Repo:          os.Getenv("CI_PROJECT_NAME"),
+			DefaultBranch: os.Getenv("CI_DEFAULT_BRANCH"),
+			Private:       os.Getenv("CI_PROJECT_VISIBILITY") != "public",
+		}, nil
+	}
+
 	project, _, err := repo.client.Projects.GetProject(repo.projectID, nil)
 	if err != nil {
 		return nil, err
