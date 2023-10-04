@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/Masterminds/semver/v3"
-	git_provider "github.com/go-semantic-release/provider-git/pkg/provider"
 	"github.com/go-semantic-release/semantic-release/v2/pkg/provider"
 	"github.com/go-semantic-release/semantic-release/v2/pkg/semrel"
 	"github.com/xanzy/go-gitlab"
@@ -23,7 +22,6 @@ type GitLabRepository struct {
 	branch          string
 	stripVTagPrefix bool
 	client          *gitlab.Client
-	gitRepo         *git_provider.Repository
 }
 
 func (repo *GitLabRepository) Init(config map[string]string) error {
@@ -32,26 +30,17 @@ func (repo *GitLabRepository) Init(config map[string]string) error {
 		gitlabBaseURL = os.Getenv("CI_SERVER_URL")
 	}
 
+	useJobToken := false
 	token := config["token"]
 	if token == "" {
 		token = os.Getenv("GITLAB_TOKEN")
-		repo.gitRepo = nil
-
-		if token == "" {
-			if os.Getenv("CI_JOB_TOKEN") != "" {
-				repo.gitRepo = &git_provider.Repository{}
-				config := map[string]string{
-					"default_branch": os.Getenv("CI_DEFAULT_BRANCH"),
-					"tagger_name":    os.Getenv("GITLAB_USER_NAME"),
-					"tagger_email":   os.Getenv("GITLAB_USER_EMAIL"),
-					"remote_name":    "origin",
-					"git_path":       os.Getenv("CI_PROJECT_DIR"),
-				}
-				repo.gitRepo.Init(config)
-			} else {
-				return errors.New("gitlab token missing")
-			}
-		}
+	}
+	if token == "" {
+		token = os.Getenv("CI_JOB_TOKEN")
+		useJobToken = true
+	}
+	if token == "" {
+		return errors.New("gitlab token missing")
 	}
 
 	branch := config["gitlab_branch"]
@@ -79,16 +68,15 @@ func (repo *GitLabRepository) Init(config map[string]string) error {
 	repo.branch = branch
 
 	gitlabClientOpts := []gitlab.ClientOptionFunc{}
-
 	if gitlabBaseURL != "" {
 		gitlabClientOpts = append(gitlabClientOpts, gitlab.WithBaseURL(gitlabBaseURL))
 	}
 
 	var client *gitlab.Client
-	if token != "" {
-		client, err = gitlab.NewClient(token, gitlabClientOpts...)
-	} else {
+	if useJobToken {
 		client, err = gitlab.NewJobClient(os.Getenv("CI_JOB_TOKEN"), gitlabClientOpts...)
+	} else {
+		client, err = gitlab.NewClient(token, gitlabClientOpts...)
 	}
 
 	if err != nil {
@@ -100,15 +88,6 @@ func (repo *GitLabRepository) Init(config map[string]string) error {
 }
 
 func (repo *GitLabRepository) GetInfo() (*provider.RepositoryInfo, error) {
-	if repo.gitRepo != nil {
-		return &provider.RepositoryInfo{
-			Owner:         os.Getenv("CI_PROJECT_NAMESPACE"),
-			Repo:          os.Getenv("CI_PROJECT_NAME"),
-			DefaultBranch: os.Getenv("CI_DEFAULT_BRANCH"),
-			Private:       os.Getenv("CI_PROJECT_VISIBILITY") == "private",
-		}, nil
-	}
-
 	project, _, err := repo.client.Projects.GetProject(repo.projectID, nil)
 	if err != nil {
 		return nil, err
@@ -123,10 +102,6 @@ func (repo *GitLabRepository) GetInfo() (*provider.RepositoryInfo, error) {
 }
 
 func (repo *GitLabRepository) GetCommits(fromSha, toSha string) ([]*semrel.RawCommit, error) {
-	/*if repo.gitRepo != nil {
-		return repo.gitRepo.GetCommits(fromSha, toSha)
-	}*/
-
 	var refName *string
 	if fromSha == "" {
 		refName = gitlab.String(toSha)
@@ -180,10 +155,6 @@ func (repo *GitLabRepository) GetCommits(fromSha, toSha string) ([]*semrel.RawCo
 }
 
 func (repo *GitLabRepository) GetReleases(rawRe string) ([]*semrel.Release, error) {
-	/*if repo.gitRepo != nil {
-		return repo.gitRepo.GetReleases(rawRe)
-	}*/
-
 	re := regexp.MustCompile(rawRe)
 	allReleases := make([]*semrel.Release, 0)
 
