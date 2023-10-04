@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/Masterminds/semver/v3"
+	GitProvider "github.com/go-semantic-release/provider-git/pkg/provider"
 	"github.com/go-semantic-release/semantic-release/v2/pkg/provider"
 	"github.com/go-semantic-release/semantic-release/v2/pkg/semrel"
 	"github.com/xanzy/go-gitlab"
@@ -22,6 +23,8 @@ type GitLabRepository struct {
 	branch          string
 	stripVTagPrefix bool
 	client          *gitlab.Client
+	localRepo       *GitProvider.Repository
+	useJobToken     bool
 }
 
 func (repo *GitLabRepository) Init(config map[string]string) error {
@@ -30,14 +33,24 @@ func (repo *GitLabRepository) Init(config map[string]string) error {
 		gitlabBaseURL = os.Getenv("CI_SERVER_URL")
 	}
 
-	useJobToken := false
+	repo.useJobToken = false
 	token := config["token"]
 	if token == "" {
 		token = os.Getenv("GITLAB_TOKEN")
 	}
 	if token == "" {
 		token = os.Getenv("CI_JOB_TOKEN")
-		useJobToken = true
+		repo.useJobToken = true
+
+		repo.localRepo = &GitProvider.Repository{}
+		err := repo.localRepo.Init(map[string]string{
+			"remote_name": "origin",
+			"git_path":    os.Getenv("CI_PROJECT_DIR"),
+		})
+
+		if err != nil {
+			return errors.New("failed to initialize local git repository")
+		}
 	}
 	if token == "" {
 		return errors.New("gitlab token missing")
@@ -73,7 +86,7 @@ func (repo *GitLabRepository) Init(config map[string]string) error {
 	}
 
 	var client *gitlab.Client
-	if useJobToken {
+	if repo.useJobToken {
 		client, err = gitlab.NewJobClient(token, gitlabClientOpts...)
 	} else {
 		client, err = gitlab.NewClient(token, gitlabClientOpts...)
@@ -111,6 +124,10 @@ func (repo *GitLabRepository) GetInfo() (*provider.RepositoryInfo, error) {
 }
 
 func (repo *GitLabRepository) GetCommits(fromSha, toSha string) ([]*semrel.RawCommit, error) {
+	if repo.useJobToken {
+		return repo.localRepo.GetCommits(fromSha, toSha)
+	}
+
 	var refName *string
 	if fromSha == "" {
 		refName = gitlab.String(toSha)
@@ -164,6 +181,10 @@ func (repo *GitLabRepository) GetCommits(fromSha, toSha string) ([]*semrel.RawCo
 }
 
 func (repo *GitLabRepository) GetReleases(rawRe string) ([]*semrel.Release, error) {
+	if repo.useJobToken {
+		return repo.localRepo.GetReleases(rawRe)
+	}
+
 	re := regexp.MustCompile(rawRe)
 	allReleases := make([]*semrel.Release, 0)
 
