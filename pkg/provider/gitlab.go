@@ -49,7 +49,7 @@ func (repo *GitLabRepository) Init(config map[string]string) error {
 		})
 
 		if err != nil {
-			return errors.New("failed to initialize local git repository")
+			return errors.New("failed to initialize local git repository: " + err.Error())
 		}
 	}
 	if token == "" {
