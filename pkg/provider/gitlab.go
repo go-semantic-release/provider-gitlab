@@ -6,6 +6,7 @@ import (
 	"os"
 	"regexp"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/Masterminds/semver/v3"
@@ -93,11 +94,25 @@ func (repo *GitLabRepository) Init(config map[string]string) error {
 }
 
 func (repo *GitLabRepository) GetInfo() (*provider.RepositoryInfo, error) {
+	if repo.gitRepo != nil {
+		return &provider.RepositoryInfo{
+			Owner:         os.Getenv("CI_PROJECT_NAMESPACE"),
+			Repo:          os.Getenv("CI_PROJECT_NAME"),
+			DefaultBranch: os.Getenv("CI_DEFAULT_BRANCH"),
+			Private:       os.Getenv("CI_PROJECT_VISIBILITY") == "private",
+		}, nil
+	}
+
+	project, _, err := repo.client.Projects.GetProject(repo.projectID, nil)
+	if err != nil {
+		return nil, err
+	}
+	namespace, repoName, _ := strings.Cut(project.PathWithNamespace, "/")
 	return &provider.RepositoryInfo{
-		Owner:         os.Getenv("CI_PROJECT_NAMESPACE"),
-		Repo:          os.Getenv("CI_PROJECT_NAME"),
-		DefaultBranch: os.Getenv("CI_DEFAULT_BRANCH"),
-		Private:       os.Getenv("CI_PROJECT_VISIBILITY") == "private",
+		Owner:         namespace,
+		Repo:          repoName,
+		DefaultBranch: project.DefaultBranch,
+		Private:       project.Visibility == gitlab.PrivateVisibility,
 	}, nil
 }
 
