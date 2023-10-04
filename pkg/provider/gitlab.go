@@ -36,22 +36,22 @@ func (repo *GitLabRepository) Init(config map[string]string) error {
 	if token == "" {
 		token = os.Getenv("GITLAB_TOKEN")
 		repo.gitRepo = nil
-	}
-	if token == "" {
-		token = os.Getenv("CI_JOB_TOKEN")
 
-		repo.gitRepo = &git_provider.Repository{}
-		config := map[string]string{
-			"default_branch": os.Getenv("CI_DEFAULT_BRANCH"),
-			"tagger_name":    os.Getenv("GITLAB_USER_NAME"),
-			"tagger_email":   os.Getenv("GITLAB_USER_EMAIL"),
-			"remote_name":    "origin",
-			"git_path":       os.Getenv("CI_PROJECT_DIR"),
+		if token == "" {
+			if os.Getenv("CI_JOB_TOKEN") != "" {
+				repo.gitRepo = &git_provider.Repository{}
+				config := map[string]string{
+					"default_branch": os.Getenv("CI_DEFAULT_BRANCH"),
+					"tagger_name":    os.Getenv("GITLAB_USER_NAME"),
+					"tagger_email":   os.Getenv("GITLAB_USER_EMAIL"),
+					"remote_name":    "origin",
+					"git_path":       os.Getenv("CI_PROJECT_DIR"),
+				}
+				repo.gitRepo.Init(config)
+			} else {
+				return errors.New("gitlab token missing")
+			}
 		}
-		repo.gitRepo.Init(config)
-	}
-	if token == "" {
-		return errors.New("gitlab token missing")
 	}
 
 	branch := config["gitlab_branch"]
@@ -78,11 +78,17 @@ func (repo *GitLabRepository) Init(config map[string]string) error {
 	repo.projectID = projectID
 	repo.branch = branch
 
-	var client *gitlab.Client
+	gitlabClientOpts := []gitlab.ClientOptionFunc{}
+
 	if gitlabBaseURL != "" {
-		client, err = gitlab.NewClient(token, gitlab.WithBaseURL(gitlabBaseURL))
+		gitlabClientOpts = append(gitlabClientOpts, gitlab.WithBaseURL(gitlabBaseURL))
+	}
+
+	var client *gitlab.Client
+	if token != "" {
+		client, err = gitlab.NewClient(token, gitlabClientOpts...)
 	} else {
-		client, err = gitlab.NewClient(token)
+		client, err = gitlab.NewJobClient(os.Getenv("CI_JOB_TOKEN"), gitlabClientOpts...)
 	}
 
 	if err != nil {
@@ -117,9 +123,9 @@ func (repo *GitLabRepository) GetInfo() (*provider.RepositoryInfo, error) {
 }
 
 func (repo *GitLabRepository) GetCommits(fromSha, toSha string) ([]*semrel.RawCommit, error) {
-	if repo.gitRepo != nil {
+	/*if repo.gitRepo != nil {
 		return repo.gitRepo.GetCommits(fromSha, toSha)
-	}
+	}*/
 
 	var refName *string
 	if fromSha == "" {
@@ -174,9 +180,9 @@ func (repo *GitLabRepository) GetCommits(fromSha, toSha string) ([]*semrel.RawCo
 }
 
 func (repo *GitLabRepository) GetReleases(rawRe string) ([]*semrel.Release, error) {
-	if repo.gitRepo != nil {
+	/*if repo.gitRepo != nil {
 		return repo.gitRepo.GetReleases(rawRe)
-	}
+	}*/
 
 	re := regexp.MustCompile(rawRe)
 	allReleases := make([]*semrel.Release, 0)
