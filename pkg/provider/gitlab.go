@@ -27,6 +27,7 @@ type GitLabRepository struct {
 	useJobToken     bool
 }
 
+//gocyclo:ignore
 func (repo *GitLabRepository) Init(config map[string]string) error {
 	gitlabBaseURL := config["gitlab_baseurl"]
 	if gitlabBaseURL == "" {
@@ -42,18 +43,22 @@ func (repo *GitLabRepository) Init(config map[string]string) error {
 		token = os.Getenv("CI_JOB_TOKEN")
 		repo.useJobToken = true
 
+		if token == "" {
+			return errors.New("gitlab token missing")
+		}
+
+		if os.Getenv("GIT_STRATEGY") == "none" {
+			return errors.New("can not use job token with sparse-checkout repository")
+		}
+
 		repo.localRepo = &GitProvider.Repository{}
 		err := repo.localRepo.Init(map[string]string{
 			"remote_name": "origin",
 			"git_path":    os.Getenv("CI_PROJECT_DIR"),
 		})
-
 		if err != nil {
-			return errors.New("failed to initialize local git repository")
+			return errors.New("failed to initialize local git repository: " + err.Error())
 		}
-	}
-	if token == "" {
-		return errors.New("gitlab token missing")
 	}
 
 	branch := config["gitlab_branch"]
