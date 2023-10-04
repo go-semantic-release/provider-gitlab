@@ -42,6 +42,10 @@ func (repo *GitLabRepository) Init(config map[string]string) error {
 		token = os.Getenv("CI_JOB_TOKEN")
 		repo.useJobToken = true
 
+		if os.Getenv("GIT_STRATEGY") == "none" {
+			return errors.New("can not use job token with sparse-checkout repository")
+		}
+
 		repo.localRepo = &GitProvider.Repository{}
 		err := repo.localRepo.Init(map[string]string{
 			"remote_name": "origin",
