@@ -27,6 +27,7 @@ type GitLabRepository struct {
 	useJobToken     bool
 }
 
+//gocyclo:ignore
 func (repo *GitLabRepository) Init(config map[string]string) error {
 	gitlabBaseURL := config["gitlab_baseurl"]
 	if gitlabBaseURL == "" {
@@ -51,7 +52,6 @@ func (repo *GitLabRepository) Init(config map[string]string) error {
 			"remote_name": "origin",
 			"git_path":    os.Getenv("CI_PROJECT_DIR"),
 		})
-
 		if err != nil {
 			return errors.New("failed to initialize local git repository: " + err.Error())
 		}
