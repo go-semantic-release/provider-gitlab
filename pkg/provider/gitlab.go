@@ -43,6 +43,10 @@ func (repo *GitLabRepository) Init(config map[string]string) error {
 		token = os.Getenv("CI_JOB_TOKEN")
 		repo.useJobToken = true
 
+		if token == "" {
+			return errors.New("gitlab token missing")
+		}
+
 		if os.Getenv("GIT_STRATEGY") == "none" {
 			return errors.New("can not use job token with sparse-checkout repository")
 		}
@@ -55,9 +59,6 @@ func (repo *GitLabRepository) Init(config map[string]string) error {
 		if err != nil {
 			return errors.New("failed to initialize local git repository: " + err.Error())
 		}
-	}
-	if token == "" {
-		return errors.New("gitlab token missing")
 	}
 
 	branch := config["gitlab_branch"]
