@@ -1,9 +1,10 @@
 module github.com/go-semantic-release/provider-gitlab
 
-go 1.19
+go 1.21
 
 require (
 	github.com/Masterminds/semver/v3 v3.2.0
+	github.com/go-semantic-release/provider-git v1.8.0
 	github.com/go-semantic-release/semantic-release/v2 v2.25.0
 	github.com/stretchr/testify v1.8.1
 	github.com/xanzy/go-gitlab v0.78.0
@@ -21,7 +22,6 @@ require (
 	github.com/go-git/gcfg v1.5.0 // indirect
 	github.com/go-git/go-billy/v5 v5.4.0 // indirect
 	github.com/go-git/go-git/v5 v5.5.2 // indirect
-	github.com/go-semantic-release/provider-git v1.8.0 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
