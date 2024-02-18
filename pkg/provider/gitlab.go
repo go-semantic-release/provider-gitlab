@@ -135,10 +135,10 @@ func (repo *GitLabRepository) GetCommits(fromSha, toSha string) ([]*semrel.RawCo
 
 	var refName *string
 	if fromSha == "" {
-		refName = gitlab.String(toSha)
+		refName = gitlab.Ptr(toSha)
 	} else {
 		// No Matter the order ofr fromSha and toSha gitlab always returns commits in reverse chronological order
-		refName = gitlab.String(fmt.Sprintf("%s...%s", fromSha, toSha))
+		refName = gitlab.Ptr(fmt.Sprintf("%s...%s", fromSha, toSha))
 	}
 
 	opts := &gitlab.ListCommitsOptions{
