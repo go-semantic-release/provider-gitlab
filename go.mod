@@ -4,7 +4,7 @@ go 1.22
 
 require (
 	github.com/Masterminds/semver/v3 v3.2.1
-	github.com/go-semantic-release/provider-git v1.9.0
+	github.com/go-semantic-release/provider-git v1.12.0
 	github.com/go-semantic-release/semantic-release/v2 v2.30.0
 	github.com/stretchr/testify v1.8.4
 	github.com/xanzy/go-gitlab v0.97.0

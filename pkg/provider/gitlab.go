@@ -55,6 +55,7 @@ func (repo *GitLabRepository) Init(config map[string]string) error {
 		err := repo.localRepo.Init(map[string]string{
 			"remote_name": "origin",
 			"git_path":    os.Getenv("CI_PROJECT_DIR"),
+			"log_order":   config["log_order"],
 		})
 		if err != nil {
 			return errors.New("failed to initialize local git repository: " + err.Error())

@@ -45,8 +45,8 @@ github.com/go-git/go-git-fixtures/v4 v4.3.2-0.20231010084843-55a94097c399 h1:eMj
 github.com/go-git/go-git-fixtures/v4 v4.3.2-0.20231010084843-55a94097c399/go.mod h1:1OCfN199q1Jm3HZlxleg+Dw/mwps2Wbk9frAWm+4FII=
 github.com/go-git/go-git/v5 v5.11.0 h1:XIZc1p+8YzypNr34itUfSvYJcv+eYdTnTvOZ2vD3cA4=
 github.com/go-git/go-git/v5 v5.11.0/go.mod h1:6GFcX2P3NM7FPBfpePbpLd21XxsgdAt+lKqXmCUiUCY=
-github.com/go-semantic-release/provider-git v1.9.0 h1:hWXYjKOgYAdzbBGlyxw5vWmQTguzV9aJUIOsTNeQKec=
-github.com/go-semantic-release/provider-git v1.9.0/go.mod h1:FZDlaBWelBiNHq41yxdwxZRbyNURl4QJC6mPW/aetFo=
+github.com/go-semantic-release/provider-git v1.12.0 h1:aqW1veKkZCSRdW74IuU2FQGksztFbEnqUDpTC5dTx1g=
+github.com/go-semantic-release/provider-git v1.12.0/go.mod h1:xAmqmQTKrykaEGU8JqQfhojFwRz+2rZLqKT9jhjuCiI=
 github.com/go-semantic-release/semantic-release/v2 v2.30.0 h1:k3CAF5vbUS7SL3sFs0vQpqaS/HqkP6NucG8C5b/k41U=
 github.com/go-semantic-release/semantic-release/v2 v2.30.0/go.mod h1:UxEB9QiOEFFJKFTFim/eFfR7inU1uyJSxGzrcaKhXC0=
 github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da h1:oI5xCqsCo564l8iNU+DwB5epxmsaqB+rhGL0m5jtYqE=
