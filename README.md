@@ -20,9 +20,9 @@ The GitLab provider for [go-semantic-release](https://github.com/go-semantic-rel
 
 ### Log Order Options
 
-> Requirements:
-> `CI_JOB_TOKEN` must be used. [GitLab CI/CD job token](https://docs.gitlab.com/ee/ci/jobs/ci_job_token.html)
-> `GIT_STRATEGY` must be set to `clone` or `fetch`. [Git strategy doc](https://docs.gitlab.com/ee/ci/runners/configure_runners.html#git-strategy)
+Requirements:
+- `CI_JOB_TOKEN` must be used. [GitLab CI/CD job token](https://docs.gitlab.com/ee/ci/jobs/ci_job_token.html)
+- `GIT_STRATEGY` must be set to `clone` or `fetch`. [Git strategy doc](https://docs.gitlab.com/ee/ci/runners/configure_runners.html#git-strategy)
 
 log_order=dfs (Default) - Ordering by depth-first search in pre-order
 
