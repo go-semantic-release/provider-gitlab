@@ -38,30 +38,31 @@ func (repo *GitLabRepository) Init(config map[string]string) error {
 	token := config["token"]
 	if token == "" {
 		token = os.Getenv("GITLAB_TOKEN")
-		ci_job_token := os.Getenv("CI_JOB_TOKEN")
-		if token == "" {
-			if ci_job_token == "" {
-				return errors.New("gitlab token missing")
-			}
-			token = ci_job_token
+	}
+	ciJobToken := os.Getenv("CI_JOB_TOKEN")
+	if token == "" {
+		if ciJobToken == "" {
+			return errors.New("gitlab token missing")
 		}
-		// use the same strategy as goreleaser
-		if token == ci_job_token {
-			repo.useJobToken = true
-			if os.Getenv("GIT_STRATEGY") == "none" {
-				return errors.New("can not use job token with sparse-checkout repository")
-			}
-			repo.localRepo = &GitProvider.Repository{}
-			err := repo.localRepo.Init(map[string]string{
-				"remote_name": "origin",
-				"git_path":    os.Getenv("CI_PROJECT_DIR"),
-				"log_order":   config["log_order"],
-			})
-			if err != nil {
-				return errors.New("failed to initialize local git repository: " + err.Error())
-			}
+		token = ciJobToken
+	}
+	// use the same strategy as goreleaser
+	if token == ciJobToken {
+		repo.useJobToken = true
+		if os.Getenv("GIT_STRATEGY") == "none" {
+			return errors.New("can not use job token with sparse-checkout repository")
+		}
+		repo.localRepo = &GitProvider.Repository{}
+		err := repo.localRepo.Init(map[string]string{
+			"remote_name": "origin",
+			"git_path":    os.Getenv("CI_PROJECT_DIR"),
+			"log_order":   config["log_order"],
+		})
+		if err != nil {
+			return errors.New("failed to initialize local git repository: " + err.Error())
 		}
 	}
+
 
 	branch := config["gitlab_branch"]
 	if branch == "" {
