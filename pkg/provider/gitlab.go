@@ -63,7 +63,6 @@ func (repo *GitLabRepository) Init(config map[string]string) error {
 		}
 	}
 
-
 	branch := config["gitlab_branch"]
 	if branch == "" {
 		branch = os.Getenv("CI_COMMIT_BRANCH")
